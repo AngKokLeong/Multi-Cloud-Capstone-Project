@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: On-Premise Template
+
+Parameters:
+
+  VPCIdentifier:
+    Type: String
+    Description: VPC Identifier
+    Default: on-premise
+
+  
+
+
+Resources:
+
+
+##################
+# On Premise VPC
+# Layer Type: Network Layer 
+# Description:
+# 
+##################
+
+  OnPremiseVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Ref VPCIdentifier
+
+
+
+
+# Create AMI
+#https://repost.aws/knowledge-center/ec2-systems-manager-ami-automation
