@@ -100,7 +100,7 @@ Resources:
       AvailabilityZone: !Select [ 0, !GetAZs '' ]
       Tags:
         - Key: Name
-          Value: PrivateSubnet
+          Value: Private-Subnet
 
 
 ##################
@@ -115,11 +115,12 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref OnPremiseVPC
+      MapPublicIpOnLaunch: true
       CidrBlock: !Ref PublicSubnetNetworkAddress
       AvailabilityZone: !Select [ 0, !GetAZs '' ]
       Tags:
         - Key: Name
-          Value: PublicSubnet
+          Value: Public-Subnet
 
 ##################
 # Public Route Table
@@ -343,11 +344,11 @@ Resources:
       ImageId: !Ref LatestAL2023AmiId
       SubnetId: !Ref PublicSubnet
       SecurityGroupIds: 
-      - !Ref LinuxBastionSecurityGroup
+        - !Ref LinuxBastionSecurityGroup
       KeyName: !Ref LinuxBastionHostKeyPair
       Tags:
           - Key: Name
-            Value: LinuxBastionHost
+            Value: Linux-Bastion-Host
       BlockDeviceMappings:
           - DeviceName: /dev/xvda
             Ebs:
@@ -376,11 +377,11 @@ Resources:
       ImageId: !Ref LatestAL2023AmiId
       SubnetId: !Ref PrivateSubnet
       SecurityGroupIds: 
-      - !Ref ApplicationServerSecurityGroup
+        - !Ref ApplicationServerSecurityGroup
       KeyName: !Ref ApplicationServerKeyPair
       Tags:
           - Key: Name
-            Value: ApplicationServer
+            Value: Application-Server
       BlockDeviceMappings:
           - DeviceName: /dev/xvda
             Ebs:
@@ -407,13 +408,13 @@ Outputs:
       Value: !GetAtt ApplicationServerKeyPair.KeyPairId
       Description: Key Pair ID for Web Server 
 
-    LinuxBastionHostPublicIPAddress:
-      Value: !GetAtt LinuxBastionHost.PublicIp
-      Description: Public IP Address for Linux Bastion Host
+    #LinuxBastionHostPublicIPAddress:
+    #  Value: !GetAtt LinuxBastionHost.PublicIp
+    #  Description: Public IP Address for Linux Bastion Host
 
-    ApplicationServerPrivateIPAddress:
-      Value: !GetAtt ApplicationServer.PrivateIp
-      Description: Private IP Address for Application Server
+    #ApplicationServerPrivateIPAddress:
+    #  Value: !GetAtt ApplicationServer.PrivateIp
+    #  Description: Private IP Address for Application Server
 
     PublicSubnetNetworkAddress:
       Value: !GetAtt PublicSubnet.CidrBlock
