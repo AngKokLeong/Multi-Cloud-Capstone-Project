@@ -19,15 +19,15 @@ Parameters:
     Description: asd
     Default: 10.2.0.0/16
 
-  PrivateSubnet1NetworkAddress:
+  PrivateSubnetNetworkAddress:
     Type: String
-    Description: asdasd
-    Default: 10.1.1.0/24
+    Description: Network Address for Private Subnet
+    Default: 10.2.2.0/24
 
-  PublicSubnet1NetworkAddress:
+  PublicSubnetNetworkAddress:
     Type: String
-    Description: asdasd
-    Default: 10.1.3.0/24
+    Description: Network Address for Public Subnet
+    Default: 10.2.1.0/24
 
   
 
@@ -96,7 +96,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref OnPremiseVPC
-      CidrBlock: !Ref PrivateSubnet1NetworkAddress
+      CidrBlock: !Ref PrivateSubnetNetworkAddress
       AvailabilityZone: !Select [ 0, !GetAZs '' ]
       Tags:
         - Key: Name
@@ -115,7 +115,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref OnPremiseVPC
-      CidrBlock: !Ref PublicSubnet1NetworkAddress
+      CidrBlock: !Ref PublicSubnetNetworkAddress
       AvailabilityZone: !Select [ 0, !GetAZs '' ]
       Tags:
         - Key: Name
@@ -214,7 +214,6 @@ Resources:
     Type: AWS::EC2::EIP
     Properties:
       Domain: !Ref OnPremiseVPC
-
 
 ##################
 # Private Route
