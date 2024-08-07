@@ -277,6 +277,31 @@ Resources:
           Value: Linux-Bastion-Security-Group
 
 
+##################
+# Application Security Group
+# Layer Type: Security Layer 
+# Description:
+# DependsOn: 
+#   - OnPremiseVPC
+##################
+
+  ApplicationServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: Application-Server-SG
+      GroupDescription: Enable access to HTTP Access to Application Server
+      VpcId: !Ref OnPremiseVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: Application-Server-Security-Group
+
+
+
 ######################################
 # COMPUTE LAYER 
 ######################################
