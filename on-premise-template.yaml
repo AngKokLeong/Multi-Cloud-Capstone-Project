@@ -29,12 +29,14 @@ Parameters:
     Description: asdasd
     Default: 10.1.3.0/24
 
+  
+
 
 Resources:
 
-######################################
+############################################################################
 # NETWORK LAYER 
-######################################
+############################################################################
 
 
 ##################
@@ -248,9 +250,9 @@ Resources:
       SubnetId: !Ref PrivateSubnet
 
 
-######################################
+############################################################################
 # SECURITY LAYER 
-######################################
+############################################################################
 
 
 ##################
@@ -300,9 +302,30 @@ Resources:
         - Key: Name
           Value: Application-Server-Security-Group
 
-######################################
+##################
+# Linux Bastion Host Key Pair
+# Layer Type: Security Layer
+# Description: Key Pair for Linux Bastion Host and this private key will be placed in System Manager parameter store
+##################
+  LinuxBastionHostKeyPair:
+    Type: AWS::EC2::KeyPair
+    Properties:
+      KeyName: Linux-Bastion-Host-Key-Pair
+
+##################
+# Application Server Key Pair
+# Layer Type: Security Layer
+# Description: Key Pair for Application Server and this private key will be placed in System Manager parameter store
+##################
+  ApplicationServerKeyPair:
+    Type: AWS::EC2::KeyPair
+    Properties:
+      KeyName: Application-Server-Key-Pair
+
+
+############################################################################
 # COMPUTE LAYER 
-######################################
+############################################################################
 
 ##################
 # Linux Bastion Host
@@ -321,6 +344,7 @@ Resources:
     SubnetId: !!Ref PublicSubnet
     SecurityGroupIds: 
      - !Ref LinuxBastionSecurityGroup
+    KeyName: !Ref LinuxBastionHostKeyPair
     Tags:
         - Key: Name
           Value: LinuxBastionHost
@@ -352,6 +376,7 @@ Resources:
     SubnetId: !!Ref PrivateSubnet
     SecurityGroupIds: 
      - !Ref ApplicationServerSecurityGroup
+    KeyName: !Ref ApplicationServerKeyPair
     Tags:
         - Key: Name
           Value: ApplicationServer
@@ -365,6 +390,8 @@ Resources:
         - DeviceName: /dev/xvdb
           NoDevice: {}
     Monitoring: false
+
+
 
 
 
