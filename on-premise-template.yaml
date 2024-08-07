@@ -393,7 +393,58 @@ Resources:
 
 
 
+Outputs:
+    OnPremiseVpcId: 
+      Value: !GetAtt OnPremiseVPC.VpcId
+      Description: On-Premise VPC ID
 
+    LinuxBastionHostKeyPairID:
+      Value: !GetAtt LinuxBastionHostKeyPair.KeyPairId
+      Description: Key Pair ID for Linux Bastion Host 
+
+    ApplicationServerKeyPairID:
+      Value: !GetAtt ApplicationServerKeyPair.KeyPairId
+      Description: Key Pair ID for Web Server 
+
+    LinuxBastionHostPublicIPAddress:
+      Value: !GetAtt LinuxBastionHost.PublicIp
+      Description: Public IP Address for Linux Bastion Host
+
+    ApplicationServerPrivateIPAddress:
+      Value: !GetAtt ApplicationServer.PrivateIp
+      Description: Private IP Address for Application Server
+
+    PublicSubnetNetworkAddress:
+      Value: !GetAtt PublicSubnet.CidrBlock
+      Description: Public Subnet Network Address
+
+    PublicSubnetAvailabilityZone:
+      Value: !GetAtt PublicSubnet.AvailabilityZone
+      Description: Public Subnet Availability Zone
+
+    PublicSubnetAvailabilityZoneID:
+      Value: !GetAtt PublicSubnet.AvailabilityZoneId
+      Description: Public Subnet Availability Zone ID
+
+    PublicSubnetID:
+      Value: !GetAtt PublicSubnet.SubnetId
+      Description: Public Subnet ID
+
+    PrivateSubnetNetworkAddress:
+      Value: !GetAtt PrivateSubnet.CidrBlock
+      Description: Private Subnet Network Address
+
+    PrivateSubnetAvailabilityZone:
+      Value: !GetAtt PrivateSubnet.AvailabilityZone
+      Description: Private Subnet Availability Zone
+
+    PrivateSubnetAvailabilityZoneID:
+      Value: !GetAtt PrivateSubnet.AvailabilityZoneId
+      Description: Private Subnet Availability Zone ID
+
+    PrivateSubnetID:
+      Value: !GetAtt PrivateSubnet.SubnetId
+      Description: Private Subnet ID
 
 # Create AMI
 #https://repost.aws/knowledge-center/ec2-systems-manager-ami-automation
