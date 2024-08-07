@@ -300,8 +300,6 @@ Resources:
         - Key: Name
           Value: Application-Server-Security-Group
 
-
-
 ######################################
 # COMPUTE LAYER 
 ######################################
@@ -337,6 +335,36 @@ Resources:
           NoDevice: {}
     Monitoring: false
 
+##################
+# Application Server
+# Layer Type: Compute Layer 
+# Description:
+# DependsOn: 
+#   - OnPremiseVPC
+#   - PrivateSubnet
+#   - ApplicationServerSecurityGroup
+##################
+
+  ApplicationServer:
+    Type: AWS::EC2::Instance
+    InstanceType: t2.micro
+    ImageId: !Ref LatestAL2023AmiId
+    SubnetId: !!Ref PrivateSubnet
+    SecurityGroupIds: 
+     - !Ref ApplicationServerSecurityGroup
+    Tags:
+        - Key: Name
+          Value: ApplicationServer
+    BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeSize: 10
+            VolumeType: gp3
+            DeleteOnTermination: true
+            Encrypted: true
+        - DeviceName: /dev/xvdb
+          NoDevice: {}
+    Monitoring: false
 
 
 
