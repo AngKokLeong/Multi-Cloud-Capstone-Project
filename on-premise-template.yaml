@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: On-Premise Template
+Description: On-Premise Template for Frankfurt Region
 
 Parameters:
 
@@ -12,6 +12,22 @@ Parameters:
     Description: Latest EC2 Amazon Linux 2023 AMI from Systems Manager Parameter Store
     Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
     Default: '/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64'
+
+
+  VPCNetworkAddress:
+    Type: String
+    Description: asd
+    Default: 10.2.0.0/16
+
+  PrivateSubnet1NetworkAddress:
+    Type: String
+    Description: asdasd
+    Default: 10.1.1.0/24
+
+  PublicSubnet1NetworkAddress:
+    Type: String
+    Description: asdasd
+    Default: 10.1.3.0/24
 
 
 Resources:
@@ -31,12 +47,39 @@ Resources:
   OnPremiseVPC:
     Type: AWS::EC2::VPC
     Properties:
-      CidrBlock: 10.0.0.0/16
+      CidrBlock: !Ref VPCNetworkAddress
       EnableDnsSupport: true
       EnableDnsHostnames: true
       Tags:
         - Key: Name
           Value: !Ref VPCIdentifier
+
+##################
+# On Premise VPC
+# Layer Type: Network Layer 
+# Description:
+# 
+##################
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: On-Premise-Internet-Gateway
+
+##################
+# On Premise VPC
+# Layer Type: Network Layer 
+# Description:
+# 
+##################
+
+  VpcGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref OnPremiseVPC
+      InternetGatewayId: !Ref InternetGateway
 
 
 ##################
@@ -47,15 +90,15 @@ Resources:
 #   - OnPremiseVPC
 ##################
 
-  PrivateSubnet1:
+  PrivateSubnet:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref OnPremiseVPC
-      CidrBlock: 10.1.1.0/24
+      CidrBlock: !Ref PrivateSubnet1NetworkAddress
       AvailabilityZone: !Select [ 0, !GetAZs '' ]
       Tags:
         - Key: Name
-          Value: PrivateSubnet1
+          Value: PrivateSubnet
 
 
 ##################
@@ -66,15 +109,143 @@ Resources:
 #   - OnPremiseVPC
 ##################
 
-  PublicSubnet1:
+  PublicSubnet:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref OnPremiseVPC
-      CidrBlock: 10.1.3.0/24
+      CidrBlock: !Ref PublicSubnet1NetworkAddress
       AvailabilityZone: !Select [ 0, !GetAZs '' ]
       Tags:
         - Key: Name
-          Value: PublicSubnet1
+          Value: PublicSubnet
+
+##################
+# Public Route Table
+# Layer Type: Network Layer 
+# Description:
+# DependsOn: 
+#   - OnPremiseVPC
+##################
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref OnPremiseVPC
+      Tags:
+        - Key: Name
+          Value: PublicRouteTable
+
+##################
+# Public Route
+# Layer Type: Network Layer 
+# Description:
+# DependsOn: 
+#   - OnPremiseVPC
+#   - PublicRouteTable
+#   - InternetGateway
+##################
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+##################
+# Public Subnet Route Table Association
+# Layer Type: Network Layer 
+# Description:
+# DependsOn: 
+#   - OnPremiseVPC
+#   - PublicRouteTable
+#   - PublicSubnet
+##################
+
+  PublicSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet
+
+##################
+# Private Route Table
+# Layer Type: Network Layer 
+# Description:
+# DependsOn: 
+#   - OnPremiseVPC
+##################
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref OnPremiseVPC
+      Tags:
+        - Key: Name
+          Value: PrivateRouteTable
+
+##################
+# NAT Gateway
+# Layer Type: Network Layer 
+# Description:
+# DependsOn: 
+#   - OnPremiseVPC
+#   - PublicSubnet
+#   - ElasticIP
+##################
+
+  NATGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt ElasticIP.AllocationId
+      SubnetId: !Ref PublicSubnet
+
+##################
+# Elastic IP
+# Layer Type: Network Layer 
+# Description:
+# DependsOn: 
+#   - OnPremiseVPC
+##################
+
+  ElasticIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: !Ref OnPremiseVPC
+
+
+##################
+# Private Route
+# Layer Type: Network Layer 
+# Description:
+# DependsOn: 
+#   - OnPremiseVPC
+#   - NATGateway
+#   - PrivateRouteTable
+##################
+
+  PrivateRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NATGateway
+
+##################
+# Private Subnet Route Table Association
+# Layer Type: Network Layer 
+# Description:
+# DependsOn: 
+#   - OnPremiseVPC
+#   - PrivateRouteTable
+#   - PrivateSubnet
+##################
+
+  PrivateSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnet
 
 
 
