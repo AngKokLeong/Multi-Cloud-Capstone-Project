@@ -13,6 +13,10 @@ Parameters:
 
 Resources:
 
+######################################
+# NETWORK LAYER 
+######################################
+
 
 ##################
 # Public Cloud VPC
@@ -32,7 +36,7 @@ Resources:
           Value: !Ref VPCIdentifier
 
 ##################
-# Public Cloud VPC
+# Internet Gateway
 # Layer Type: Network Layer 
 # Description:
 # DependsOn: 
@@ -41,17 +45,19 @@ Resources:
 
   InternetGateWay:
     Type: AWS::EC2::InternetGateway
+    DependsOn: PublicCloudVPC
     Properties:
       Tags:
         - Key: Name
           Value: Public Cloud VPC Internet Gateway
 
 ##################
-# Public Cloud VPC
+# VPC Gateway Attachment
 # Layer Type: Network Layer 
 # Description:
 # DependsOn: 
-#     -  
+#     - InternetGateWay
+#     - PublicCloudVPC
 ##################
 
   VPCtoIGWConnection:
@@ -132,6 +138,55 @@ Resources:
       Tags:
         - Key: Name
           Value: PublicSubnet2
+
+
+######################################
+# SECURITY LAYER 
+######################################
+
+
+##################
+# Application Load Balancer Security Group
+# Layer Type: Network Layer 
+# Description: Allow HTTP for Application Load Balancer
+# DependsOn: 
+#   - PublicCloudVPC
+##################
+
+  ApplicationLoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP for Application Load Balancer
+      VpcId: !Ref PublicCloudVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+
+##################
+# Application Security Group
+# Layer Type: Network Layer 
+# Description: Allow HTTP for EC2 Instance hosting Application
+# DependsOn: 
+#   - PublicCloudVPC
+##################
+
+  ApplicationSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP for EC2 Instance hosting Application
+      VpcId: !Ref PublicCloudVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref ApplicationLoadBalancerSecurityGroup
+
+
+
+
+
 
 
 
