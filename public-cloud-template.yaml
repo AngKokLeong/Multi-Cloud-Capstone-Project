@@ -14,9 +14,9 @@ Parameters:
     Default: 10.1.0.0/16
     
 Resources:
-#######################################################################
+##############################################################################################################################################
 # NETWORK LAYER 
-#######################################################################
+##############################################################################################################################################
 
 
 #################################
@@ -223,8 +223,9 @@ Resources:
           Value: Public Route Table
 
 #################################
-# Public Route Table
+# PublicRoute
 # Layer Type: Network Layer
+# Description: Create a Route in Public Routing Table to accept any connection from the Internet Gateway
 # DependsOn:
 #   - PublicRouteTable
 #   - InternetGateWay
@@ -259,7 +260,7 @@ Resources:
 #################################
 # Private Subnet 2
 # Layer Type: Network Layer 
-# Description:
+# Description: 
 # DependsOn: 
 #   - PublicCloudVPC
 #################################
@@ -332,6 +333,7 @@ Resources:
 ######################
 # PrivateRouteTableAssociationForPrivateSubnet1
 # Layer Type: Network Layer
+# Description: Associate Private Subnet 1 to Private Route Table
 # DependsOn:
 #   - PrivateRouteTableForPrivateSubnet
 #   - PrivateSubnet2
@@ -346,6 +348,7 @@ Resources:
 ######################
 # PrivateRouteTableAssociationForPrivateSubnet2
 # Layer Type: Network Layer
+# Description: Associate Private Subnet 2 to Private Route Table
 # DependsOn:
 #   - PrivateRouteTableForPrivateSubnet
 #   - PrivateSubnet2
@@ -363,9 +366,9 @@ Resources:
 
 
 
-#######################################################################
+##############################################################################################################################################
 # SECURITY LAYER 
-#######################################################################
+##############################################################################################################################################
 
 
 ##################
@@ -409,9 +412,9 @@ Resources:
 
 
 
-######################################
+##############################################################################################################################################
 # COMPUTE LAYER 
-######################################
+##############################################################################################################################################
 
 
 
