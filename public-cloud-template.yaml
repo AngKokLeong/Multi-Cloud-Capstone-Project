@@ -3,6 +3,11 @@ Description: Public Cloud Project
 
 Parameters:
 
+  LatestAL2023AmiId:
+    Description: Latest EC2 Amazon Linux 2023 AMI from Systems Manager Parameter Store
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64'
+  
   VPCIdentifier:
     Type: String
     Description: VPC Identifier
@@ -366,7 +371,7 @@ Resources:
       SubnetId: !Ref PrivateSubnet1
 
 ######################
-# PrivateRouteTableAssociationForPrivateSubnet2
+# Private Route Table Association For Private Subnet 2
 # Resource Type: SubnetRouteTableAssociation
 # Layer Type: Network Layer
 # Description: Associate Private Subnet 2 to Private Route Table
@@ -432,7 +437,29 @@ Resources:
           ToPort: 80
           SourceSecurityGroupId: !Ref ApplicationLoadBalancerSecurityGroup
 
+##################
+# Linux Bastion Security Group
+# Resource Type: Security Group
+# Layer Type: Network Layer 
+# Description: Allow HTTP for EC2 Instance hosting Application
+# DependsOn: 
+#   - PublicCloudVPC
+##################
 
+  LinuxBastionSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: Linux-Bastion-SG
+      GroupDescription: Enable access to SSH
+      VpcId: !Ref PublicCloudVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0 #Allow HTTP Traffic from any IPv4 address
+      Tags:
+        - Key: Name
+          Value: Linux-Bastion-Security-Group
 
 
 ##############################################################################################################################################
@@ -446,10 +473,32 @@ Resources:
 # Layer Type: Compute Layer 
 # Description: Allow HTTP for EC2 Instance hosting Application
 # DependsOn: 
-#   - PublicCloudVPC
+#   - PublicSubnet1
+#   - LinuxBastionSecurityGroup
 ##################
 
-
+  LinuxBastionHost1:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: !Ref LatestAL2023AmiId
+      SubnetId: !Ref PublicSubnet1
+      #KeyName: !Ref LinuxBastionHostOneKeyPair
+      SecurityGroupIds:
+        - !Ref LinuxBastionSecurityGroup
+      Tags:
+        - Key: Name
+          Value: LinuxBastionHost1
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeSize: 10
+            VolumeType: gp3
+            DeleteOnTermination: true
+            Encrypted: true
+        - DeviceName: /dev/xvdb
+          NoDevice: {}
+      Monitoring: false
 
 # Create AMI
 #https://repost.aws/knowledge-center/ec2-systems-manager-ami-automation
