@@ -125,6 +125,7 @@ Resources:
     Properties:
       VpcId: !Ref PublicCloudVPC
       CidrBlock: 10.1.3.0/24
+      MapPublicIpOnLaunch: true
       AvailabilityZone: !Ref PublicSubnet1AvailabilityZone
       Tags:
         - Key: Name
@@ -144,6 +145,7 @@ Resources:
     Properties:
       VpcId: !Ref PublicCloudVPC
       CidrBlock: 10.1.4.0/24
+      MapPublicIpOnLaunch: true
       AvailabilityZone: !Ref PublicSubnet2AvailabilityZone
       Tags:
         - Key: Name
