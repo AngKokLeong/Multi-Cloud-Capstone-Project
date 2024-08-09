@@ -390,7 +390,7 @@ Resources:
 # Application Load Balancer
 # Resource Type: ElasticLoadBalancingV2 LoadBalancer
 # Layer Type: Network Layer
-# Description: Associate Private Subnet 2 to Private Route Table
+# Description: Create an application load balancer that associate itself with Public Subnets and it receives connection from the internet
 # DependsOn:
 #   - ApplicationLoadBalancerSecurityGroup
 #   - PublicSubnet1
@@ -411,7 +411,59 @@ Resources:
         - !Ref PublicSubnet2
       Type: application
 
+############################################
+# Application Load Balancer Listener
+# Resource Type: ElasticLoadBalancingV2 Listener
+# Layer Type: Network Layer
+# Description: An Application Load Balancer listener that listens for any connection request from HTTP Port 80
+# DependsOn:
+#   - ApplicationLoadBalancer
+#   - WebServerTargetGroup
+############################################
 
+
+  ApplicationLoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !GetAtt WebServerTargetGroup.TargetGroupArn
+      LoadBalancerArn: !GetAtt ApplicationLoadBalancer.LoadBalancerArn
+      Port: 80
+      Protocol: HTTP
+
+############################################
+# Web Server Target Group
+# Resource Type: ElasticLoadBalancingV2 Target Group
+# Layer Type: Network Layer
+# Description: A Target Group that is used by Application Load Balancer and this target group registers EC2 Instance into the group it detects automatically
+#              There is another function in this resource which considers the user experience of the Web users in the E-Commerce website and it provides a stable connection 
+#              without switching the user to another server due to the server load for up to 30 seconds.
+# DependsOn:
+#   - PublicCloudVPC
+############################################
+
+  WebServerTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: 80
+      Protocol: HTTP
+      VpcId: !Ref PublicCloudVPC
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPath: /
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      TargetType: instance
+      TargetGroupAttributes:
+        - Key: stickiness.enabled
+          Value: true
+        - Key: stickiness.type
+          Value: app_cookie
+        - Key: stickiness.app_cookie.duration_seconds
+          Value: 30
+        - Key: stickiness.app_cookie.cookie_name
+          Value: TESTCOOKIE
 
 
 
