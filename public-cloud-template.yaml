@@ -82,6 +82,23 @@ Parameters:
     ConstraintDescription: must be a valid Availability Zone for the specified AWS Region
 
 
+  AutoScalingGroupMinimumNumberOfInstances:
+    Type: Number
+    Description: Minimum Number of Instances for Auto Scaling Group 
+    Default: 2
+
+  AutoScalingGroupMaximumNumberOfInstances:
+    Type: Number
+    Description: Maximum Number of Instances for Auto Scaling Group
+    Default: 6
+
+  AutoScalingGroupDesiredNumberOfInstances:
+    Type: Number
+    Description: Desired Number of Instances for Auto Scaling Group
+    Default: 2
+  
+
+
     
 Resources:
 ##############################################################################################################################################
@@ -829,9 +846,9 @@ Resources:
       LaunchTemplate:
         LaunchTemplateId: !Ref WebServerLaunchTemplate
         Version: !GetAtt WebServerLaunchTemplate.LatestVersionNumber
-      MinSize: 2
-      MaxSize: 2
-      DesiredCapacity: 2
+      MinSize: !Ref AutoScalingGroupMinimumNumberOfInstances
+      MaxSize: !Ref AutoScalingGroupMaximumNumberOfInstances
+      DesiredCapacity: !Ref AutoScalingGroupDesiredNumberOfInstances
       HealthCheckGracePeriod: 300
       HealthCheckType: ELB
       TargetGroupARNs:
@@ -840,7 +857,6 @@ Resources:
         - Key: Name
           Value: WebServer
           PropagateAtLaunch: true
-
 
 ############################################
 # Target Tracking Scaling Policy
