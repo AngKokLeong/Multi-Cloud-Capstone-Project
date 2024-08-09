@@ -500,5 +500,40 @@ Resources:
           NoDevice: {}
       Monitoring: false
 
+
+
+############################################
+# Linux Bastion Host 2
+# Resource Type: EC2 Instance
+# Layer Type: Compute Layer 
+# Description: Allow HTTP for EC2 Instance hosting Application
+# DependsOn: 
+#   - PublicSubnet2
+#   - LinuxBastionSecurityGroup
+############################################
+
+  LinuxBastionHost2:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: !Ref LatestAL2023AmiId
+      SubnetId: !Ref PublicSubnet2
+      #KeyName: !Ref LinuxBastionHostOneKeyPair
+      SecurityGroupIds:
+        - !Ref LinuxBastionSecurityGroup
+      Tags:
+        - Key: Name
+          Value: LinuxBastionHost1
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeSize: 10
+            VolumeType: gp3
+            DeleteOnTermination: true
+            Encrypted: true
+        - DeviceName: /dev/xvdb
+          NoDevice: {}
+      Monitoring: false
+
 # Create AMI
 #https://repost.aws/knowledge-center/ec2-systems-manager-ami-automation
