@@ -386,7 +386,30 @@ Resources:
       RouteTableId: !Ref PrivateRouteTableForPrivateSubnet
       SubnetId: !Ref PrivateSubnet2
 
+############################################
+# Application Load Balancer
+# Resource Type: ElasticLoadBalancingV2 LoadBalancer
+# Layer Type: Network Layer
+# Description: Associate Private Subnet 2 to Private Route Table
+# DependsOn:
+#   - ApplicationLoadBalancerSecurityGroup
+#   - PublicSubnet1
+#   - PublicSubnet2
+############################################
 
+
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: application-load-balancer
+      Scheme: internet-facing
+      IpAddressType: ipv4 
+      SecurityGroups: 
+        - !GetAtt ApplicationLoadBalancerSecurityGroup.GroupId
+      Subnets:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+      Type: application
 
 
 
