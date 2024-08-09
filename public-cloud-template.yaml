@@ -24,13 +24,13 @@ Resources:
 ##############################################################################################################################################
 
 
-#################################
+############################################
 # Public Cloud VPC
 # Resource Type: EC2 VPC
 # Layer Type: Network Layer 
 # Description:
 # DependsOn: None
-#################################
+############################################
 
   PublicCloudVPC:
     Type: AWS::EC2::VPC
@@ -42,14 +42,14 @@ Resources:
         - Key: Name
           Value: !Ref VPCIdentifier
 
-#################################
+############################################
 # Internet Gateway
 # Resource Type: EC2 Internet Gateway
 # Layer Type: Network Layer 
 # Description: Create a resource for InternetGateway
 # DependsOn: 
 #     -  PublicCloudVPC
-#################################
+############################################
 
   InternetGateWay:
     Type: AWS::EC2::InternetGateway
@@ -59,7 +59,7 @@ Resources:
         - Key: Name
           Value: Public Cloud VPC Internet Gateway
 
-#################################
+############################################
 # VPC Gateway Attachment
 # Resource Type: EC2 VPC Gateway Attachment
 # Layer Type: Network Layer 
@@ -67,7 +67,7 @@ Resources:
 # DependsOn: 
 #     - InternetGateWay
 #     - PublicCloudVPC
-#################################
+############################################
 
   VPCtoIGWConnection:
     Type: AWS::EC2::VPCGatewayAttachment
@@ -76,14 +76,14 @@ Resources:
       VpcId: !Ref PublicCloudVPC
 
 
-#################################
+############################################
 # Public Subnet 1
 # Resource Type: EC2 Subnet
 # Layer Type: Network Layer 
 # Description: Public Subnet 1 in Public Cloud VPC
 # DependsOn: 
 #   - PublicCloudVPC
-#################################
+############################################
 
   PublicSubnet1:
     Type: AWS::EC2::Subnet
@@ -95,14 +95,14 @@ Resources:
         - Key: Name
           Value: PublicSubnet1
 
-#################################
+############################################
 # Public Subnet 2
 # Resource Type: EC2 Subnet
 # Layer Type: Network Layer 
 # Description: Public Subnet 2 in Public Cloud VPC
 # DependsOn: 
 #   - PublicCloudVPC
-#################################
+############################################
 
   PublicSubnet2:
     Type: AWS::EC2::Subnet
@@ -114,7 +114,7 @@ Resources:
         - Key: Name
           Value: PublicSubnet2
 
-#################################
+############################################
 # NATGatewayForPublicSubnet1
 # Resource Type: EC2 NAT Gateway
 # Layer Type: Network Layer 
@@ -123,7 +123,7 @@ Resources:
 #   - PublicCloudVPC
 #   - ElasticIPAddressforNATGatewayPublicSubnet1
 #   - PublicSubnet1
-#################################
+############################################
 
   NATGatewayForPublicSubnet1:
     Type: AWS::EC2::NatGateway
@@ -135,13 +135,13 @@ Resources:
       - Key: Name
         Value: PublicSubnet1-NATGateway
 
-#################################
+############################################
 # ElasticIPAddressforNATGatewayPublicSubnet1
 # Resource Type: EC2 EIP
 # Layer Type: Network Layer 
 # Description: Elastic IP Address attached to NAT Gateway for Public Subnet 1
 # DependsOn: None
-#################################
+############################################
 
   ElasticIPAddressforNATGatewayPublicSubnet1:
     Type: AWS::EC2::EIP
@@ -151,7 +151,7 @@ Resources:
         - Key: Name
           Value: PublicSubnet1-NATGateway-Elastic-IP 
 
-#################################
+############################################
 # NATGatewayForPublicSubnet2
 # Resource Type: EC2 NAT Gateway
 # Layer Type: Network Layer 
@@ -160,7 +160,7 @@ Resources:
 #   - PublicCloudVPC
 #   - ElasticIPAddressforNATGatewayPublicSubnet2
 #   - PublicSubnet2
-#################################
+############################################
 
   NATGatewayForPublicSubnet2:
     Type: AWS::EC2::NatGateway
@@ -172,13 +172,13 @@ Resources:
       - Key: Name
         Value: PublicSubnet2-NATGateway
 
-#################################
+############################################
 # ElasticIPAddressforNATGatewayPublicSubnet2
 # Resource Type: EC2 EIP
 # Layer Type: Network Layer 
 # Description: Elastic IP Address attached to NAT Gateway for Public Subnet 2
 # DependsOn: None
-#################################
+############################################
 
   ElasticIPAddressforNATGatewayPublicSubnet2:
     Type: AWS::EC2::EIP
@@ -189,7 +189,7 @@ Resources:
           Value: PublicSubnet2-NATGateway-Elastic-IP 
 
 
-#################################
+############################################
 # PublicRouteTableAssociationPublicSubnet1
 # Resource Type: EC2 Subnet Route Table Association
 # Layer Type: Network Layer
@@ -197,7 +197,7 @@ Resources:
 # DependsOn:
 #   - PublicRouteTable
 #   - PublicSubnet1
-#################################
+############################################
 
   PublicRouteTableAssociationPublicSubnet1:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -206,7 +206,7 @@ Resources:
       SubnetId: !Ref PublicSubnet1
 
 
-#################################
+############################################
 # PublicRouteTableAssociationPublicSubnet2
 # Resource Type: EC2 Subnet Route Table Association
 # Layer Type: Network Layer
@@ -214,7 +214,7 @@ Resources:
 # DependsOn:
 #   - PublicRouteTable
 #   - PublicSubnet2
-#################################
+############################################
 
   PublicRouteTableAssociationPublicSubnet2:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -223,14 +223,14 @@ Resources:
       SubnetId: !Ref PublicSubnet2
 
 
-#################################
+############################################
 # Public Route Table
 # Resource Type: EC2 RouteTable
 # Layer Type: Network Layer
 # Description: 
 # DependsOn:
 #   - PublicCloudVPC
-#################################
+############################################
 
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
@@ -240,7 +240,7 @@ Resources:
         - Key: Name
           Value: Public Route Table
 
-#################################
+############################################
 # PublicRoute
 # Resource Type: EC2 Route
 # Layer Type: Network Layer
@@ -248,7 +248,7 @@ Resources:
 # DependsOn:
 #   - PublicRouteTable
 #   - InternetGateWay
-#################################
+############################################
 
   PublicRoute:
     Type: AWS::EC2::Route
@@ -258,14 +258,14 @@ Resources:
       RouteTableId: !Ref PublicRouteTable
 
 
-#################################
+############################################
 # Private Subnet 1
 # Resource Type: EC2 Subnet
 # Layer Type: Network Layer 
 # Description:
 # DependsOn: 
 #   - PublicCloudVPC
-#################################
+############################################
 
   PrivateSubnet1:
     Type: AWS::EC2::Subnet
@@ -277,14 +277,14 @@ Resources:
         - Key: Name
           Value: PrivateSubnet1
 
-#################################
+############################################
 # Private Subnet 2
 # Resource Type: EC2 Subnet
 # Layer Type: Network Layer 
 # Description: 
 # DependsOn: 
 #   - PublicCloudVPC
-#################################
+############################################
 
   PrivateSubnet2:
     Type: AWS::EC2::Subnet
@@ -297,14 +297,14 @@ Resources:
           Value: PrivateSubnet2
 
 
-#################################
+############################################
 # Private Route Table App
 # Resource Type: EC2 Route Table
 # Layer Type: Network Layer
 # Description: Private Routing Table for Private Subnet
 # DependsOn: 
 #   - PublicCloudVPC
-#################################
+############################################
 
   PrivateRouteTableForPrivateSubnet:
     Type: AWS::EC2::RouteTable
@@ -314,7 +314,7 @@ Resources:
         - Key: Name
           Value: Private Route Table App
 
-#################################
+############################################
 # ApplicationServerPrivateRoute1
 # Resource Type: EC2 Route
 # Layer Type: Network Layer 
@@ -322,7 +322,7 @@ Resources:
 # DependsOn: 
 #   - PrivateRouteTableForPrivateSubnet
 #   - NATGatewayForPublicSubnet1
-#################################
+############################################
 
   ApplicationServerPrivateRoute1:            
     Type: AWS::EC2::Route
@@ -334,7 +334,7 @@ Resources:
 
 
 
-#################################
+############################################
 # ApplicationServerPrivateRoute2
 # Resource Type: EC2 Route
 # Layer Type: Network Layer 
@@ -342,7 +342,7 @@ Resources:
 # DependsOn: 
 #   - PrivateRouteTableForPrivateSubnet
 #   - NATGatewayForPublicSubnet2
-#################################
+############################################
 
   ApplicationServerPrivateRoute2:            # Private route table can access web via NAT (created below)
     Type: AWS::EC2::Route
@@ -354,7 +354,7 @@ Resources:
 
 
 
-######################
+############################################
 # PrivateRouteTableAssociationForPrivateSubnet1
 # Resource Type: SubnetRouteTableAssociation
 # Layer Type: Network Layer
@@ -362,7 +362,7 @@ Resources:
 # DependsOn:
 #   - PrivateRouteTableForPrivateSubnet
 #   - PrivateSubnet2
-######################
+############################################
 
   PrivateRouteTableAssociationForPrivateSubnet1:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -370,7 +370,7 @@ Resources:
       RouteTableId: !Ref PrivateRouteTableForPrivateSubnet
       SubnetId: !Ref PrivateSubnet1
 
-######################
+############################################
 # Private Route Table Association For Private Subnet 2
 # Resource Type: SubnetRouteTableAssociation
 # Layer Type: Network Layer
@@ -378,7 +378,7 @@ Resources:
 # DependsOn:
 #   - PrivateRouteTableForPrivateSubnet
 #   - PrivateSubnet2
-######################
+############################################
 
   PrivateRouteTableAssociationForPrivateSubnet2:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -397,13 +397,13 @@ Resources:
 ##############################################################################################################################################
 
 
-##################
+############################################
 # Application Load Balancer Security Group
 # Layer Type: Network Layer 
 # Description: Allow HTTP for Application Load Balancer
 # DependsOn: 
 #   - PublicCloudVPC
-##################
+############################################
 
   ApplicationLoadBalancerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -416,7 +416,7 @@ Resources:
           ToPort: 80
           CidrIp: 0.0.0.0/0
 
-##################
+############################################
 # Application Security Group
 # Resource Type: Security Group
 # Layer Type: Network Layer 
@@ -424,7 +424,7 @@ Resources:
 # DependsOn: 
 #   - PublicCloudVPC
 #   - ApplicationLoadBalancerSecurityGroup
-##################
+############################################
 
   ApplicationSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -437,14 +437,14 @@ Resources:
           ToPort: 80
           SourceSecurityGroupId: !Ref ApplicationLoadBalancerSecurityGroup
 
-##################
+############################################
 # Linux Bastion Security Group
 # Resource Type: Security Group
 # Layer Type: Network Layer 
 # Description: Allow HTTP for EC2 Instance hosting Application
 # DependsOn: 
 #   - PublicCloudVPC
-##################
+############################################
 
   LinuxBastionSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -467,7 +467,7 @@ Resources:
 ##############################################################################################################################################
 
 
-##################
+############################################
 # Linux Bastion Host 1
 # Resource Type: EC2 Instance
 # Layer Type: Compute Layer 
@@ -475,7 +475,7 @@ Resources:
 # DependsOn: 
 #   - PublicSubnet1
 #   - LinuxBastionSecurityGroup
-##################
+############################################
 
   LinuxBastionHost1:
     Type: AWS::EC2::Instance
