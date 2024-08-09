@@ -834,10 +834,6 @@ Resources:
       DesiredCapacity: 2
       HealthCheckGracePeriod: 300
       HealthCheckType: ELB
-      MetricsCollection:
-        - Granularity: "1Minute"
-          Metrics:
-            - "CPUUtilization"
       TargetGroupARNs:
         - !GetAtt WebServerTargetGroup.TargetGroupArn
       Tags:
