@@ -680,30 +680,97 @@ Resources:
           NoDevice: {}
       Monitoring: false
 
-
 ############################################
-# EC2 Instance - Web Server 1
-# Resource Type: EC2 Instance
+# Auto Scaling Group
+# Resource Type: AutoScaling AutoScalingGroup
 # Layer Type: Compute Layer 
-# Description: Allow HTTP for EC2 Instance hosting Application
+# Description: An Auto Scaling Group that creates EC2 Instance (Web Server) based on the WebServerLaunchTemplate 
+#              by using the WebServerTargetGroup to determine which are the EC2 instances to monitor 
+#              The key metric which the AutoScalingGroup uses through the TargetTrackingScaling Policy is the Average CPU Utilization
+#              If the CPU Utilization is above 70%, new EC2 Instance will spawn between the two private subnets (PrivateSubnet1 or PrivateSubnet2)
 # DependsOn: 
 #   - PrivateSubnet1
+#   - PrivateSubnet2
+#   - ExampleLaunchTemplate
+#   - WebServerTargetGroup
+############################################
+
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier: 
+        - Fn::GetAtt: [PrivateSubnet1, SubnetId]
+        - Fn::GetAtt: [PrivateSubnet2, SubnetId] 
+      LaunchTemplate:
+        LaunchTemplateId: !Ref WebServerLaunchTemplate
+        Version: !GetAtt WebServerLaunchTemplate.LatestVersionNumber
+      MinSize: 2
+      MaxSize: 2
+      DesiredCapacity: 2
+      HealthCheckGracePeriod: 300
+      HealthCheckType: ELB
+      TargetGroupARNs:
+        - !GetAtt WebServerTargetGroup.TargetGroupArn
+
+
+############################################
+# Target Tracking Scaling Policy
+# Resource Type: AutoScaling Scaling Policy
+# Layer Type: Compute Layer 
+# Description: 
+# DependsOn: 
+#   - AutoScalingGroup
+############################################
+
+  TargetTrackingScalingPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AutoScalingGroupName: !Ref AutoScalingGroup
+      PolicyType: TargetTrackingScaling
+      TargetTrackingConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ASGAverageCPUUtilization
+        TargetValue: 70.0
+
+############################################
+# Web Server Launch Template
+# Resource Type: AutoScaling Scaling Policy
+# Layer Type: Compute Layer 
+# Description: 
+# DependsOn: 
+#   - LatestAL2023AmiId
+#   - AutoScalingGroup
 #   - ApplicationSecurityGroup
 #   - WebServerSSHSecurityGroup
 ############################################
 
-  WebServer1:
-    Type: AWS::EC2::Instance
+  WebServerLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
     Properties:
-      InstanceType: t2.micro
-      ImageId: !Ref LatestAL2023AmiId
-      SubnetId: !Ref PrivateSubnet1
-      #KeyName: !Ref WebServerOneKeyPair
-      SecurityGroupIds:
-        - !Ref ApplicationSecurityGroup
-        - !Ref WebServerSSHSecurityGroup
-      UserData:
-        Fn::Base64: !Sub |
+      LaunchTemplateData:
+        InstanceType: t2.micro
+#        KeyName: !Ref KeyName
+        ImageId: !Ref LatestAL2023AmiId
+        TagSpecifications:
+          - ResourceType: "launch-template"
+            Tags:
+              - Key: "Name"
+                Value: "Web Server Launch Template"
+          - ResourceType: instance
+            Tags:
+              - Key: "Name"
+                Value: "Web Server"
+
+        IamInstanceProfile:
+          Arn:
+            Fn::GetAtt:
+            - InstanceProfile
+            - Arn
+        SecurityGroupIds:
+          - !Ref ApplicationSecurityGroup
+          - !Ref WebServerSSHSecurityGroup
+        UserData:
+          Fn::Base64: !Sub | 
               #!/bin/bash -ex
                 dnf -y update
               
@@ -713,34 +780,20 @@ Resources:
 
                 cd /var/www/html/
                 
-                # Clone the Git Repository containing the Sample PHP application
+                # Clone the Git Repository containing the Sample application
                 sudo git clone https://github.com/AngKokLeong/Multi-Cloud-Capstone-Project-Sample-Webpage.git
                 
-                # Move every item from Multi-Cloud-Capstone-Project-Sample-Webpage to /var/www/html/
+                # Move every item from AWS-Cloud-Architect-Capstone-Sample-PHP-Application to /var/www/html/
                 sudo mv Multi-Cloud-Capstone-Project-Sample-Webpage/* ./
-                sudo rm -rf Multi-Cloud-Capstone-Project-Sample-Webpage 
+                sudo rm -rf Multi-Cloud-Capstone-Project-Sample-Webpage
 
                 chkconfig httpd on
                 service httpd start
-
+                
                 chown -R ec2-user:ec2-user /var/www/html
-      Tags:
-        - Key: Name
-          Value: WebServer1
-      #IamInstanceProfile: !Ref InstanceProfile
-      BlockDeviceMappings:
-        - DeviceName: /dev/xvda
-          Ebs:
-            VolumeSize: 10
-            VolumeType: gp3
-            DeleteOnTermination: true
-            Encrypted: true
-        - DeviceName: /dev/xvdb
-          NoDevice: {}
-      Monitoring: false
 
-
-
+      LaunchTemplateName: Web-Server-Launch-Template
 
 # Create AMI
 #https://repost.aws/knowledge-center/ec2-systems-manager-ami-automation
+
