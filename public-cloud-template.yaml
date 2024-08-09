@@ -736,7 +736,9 @@ Resources:
 # Web Server Launch Template
 # Resource Type: AutoScaling Scaling Policy
 # Layer Type: Compute Layer 
-# Description: 
+# Description: The Web Server Launch template is a template for creating EC2 Instance and it is attached with WebServerKeyPair that allows SSH access
+#              UserData is written with bash script to setup the environment in EC2 Instance when it first create
+#              Security Groups are attached to this Launch template where ApplicationSecurityGroup allows HTTP port 80 and WebServerSSHSecurityGroup allows HTTP port 22
 # DependsOn: 
 #   - LatestAL2023AmiId
 #   - WebServerKeyPair
