@@ -17,6 +17,41 @@ Parameters:
     Type: String
     Description: VPC Network Address
     Default: 10.1.0.0/16
+
+  InstanceType:
+    Type: String
+    Default: t3.micro
+    AllowedValues:
+      - t3.micro
+      - t3.small
+      - t3.medium
+      - t3.large
+      - t3.xlarge
+      - t3.2xlarge
+    Description: The EC2 instance type to launch
+
+  PublicSubnet1AvailabilityZone:
+    Type: AWS::EC2::AvailabilityZone::Name
+    Description: The Availability Zone in which to create resources
+    ConstraintDescription: must be a valid Availability Zone for the specified AWS Region
+
+  PublicSubnet2AvailabilityZone:
+    Type: AWS::EC2::AvailabilityZone::Name
+    Description: The Availability Zone in which to create resources
+    ConstraintDescription: must be a valid Availability Zone for the specified AWS Region
+
+  PrivateSubnet1AvailabilityZone:
+    Type: AWS::EC2::AvailabilityZone::Name
+    Description: The Availability Zone in which to create resources
+    ConstraintDescription: must be a valid Availability Zone for the specified AWS Region
+
+
+  PrivateSubnet2AvailabilityZone:
+    Type: AWS::EC2::AvailabilityZone::Name
+    Description: The Availability Zone in which to create resources
+    ConstraintDescription: must be a valid Availability Zone for the specified AWS Region
+
+
     
 Resources:
 ##############################################################################################################################################
@@ -90,7 +125,7 @@ Resources:
     Properties:
       VpcId: !Ref PublicCloudVPC
       CidrBlock: 10.1.3.0/24
-      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      AvailabilityZone: !Ref PublicSubnet1AvailabilityZone
       Tags:
         - Key: Name
           Value: PublicSubnet1
@@ -109,7 +144,7 @@ Resources:
     Properties:
       VpcId: !Ref PublicCloudVPC
       CidrBlock: 10.1.4.0/24
-      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      AvailabilityZone: !Ref PublicSubnet2AvailabilityZone
       Tags:
         - Key: Name
           Value: PublicSubnet2
@@ -272,7 +307,7 @@ Resources:
     Properties:
       VpcId: !Ref PublicCloudVPC
       CidrBlock: 10.1.1.0/24
-      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      AvailabilityZone: !Ref PrivateSubnet1AvailabilityZone
       Tags:
         - Key: Name
           Value: PrivateSubnet1
@@ -291,7 +326,7 @@ Resources:
     Properties:
       VpcId: !Ref PublicCloudVPC
       CidrBlock: 10.1.2.0/24
-      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      AvailabilityZone: !Ref PrivateSubnet2AvailabilityZone
       Tags:
         - Key: Name
           Value: PrivateSubnet2
@@ -473,6 +508,64 @@ Resources:
 
 
 ############################################
+# EC2 Instance Profile
+# Resource Type: IAM InstanceProfile
+# Layer Type: Security Layer 
+# Description: 
+# DependsOn: 
+#   - WebServerRole
+############################################
+
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles: [!Ref WebServerRole]
+      InstanceProfileName: EC2-Instance-Profile
+
+############################################
+# Web Server Role
+# Resource Type: IAM Role
+# Layer Type: Security Layer 
+# Description: 
+# DependsOn: None
+############################################
+
+  WebServerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: Web-Server-Role
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/ReadOnlyAccess
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: secretsaccess
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                      - secretsmanager:CreateSecret
+                      - secretsmanager:GetSecretValue
+                      - secretsmanager:DescribeSecret
+                      - secretsmanager:PutSecretValue
+                      - secretsmanager:ListSecrets
+                      - secretsmanager:UpdateSecret
+                Resource: !Sub arn:aws:secretsmanager:*:${AWS::AccountId}:secret:*
+
+
+
+############################################
 # Application Load Balancer Security Group
 # Resource Type: Security Group
 # Layer Type: Security Layer 
@@ -625,7 +718,7 @@ Resources:
   LinuxBastionHost1:
     Type: AWS::EC2::Instance
     Properties:
-      InstanceType: t2.micro
+      InstanceType: !Ref InstanceType
       ImageId: !Ref LatestAL2023AmiId
       SubnetId: !Ref PublicSubnet1
       KeyName: !Ref LinuxBastionHostOneKeyPair
@@ -660,7 +753,7 @@ Resources:
   LinuxBastionHost2:
     Type: AWS::EC2::Instance
     Properties:
-      InstanceType: t2.micro
+      InstanceType: !Ref InstanceType
       ImageId: !Ref LatestAL2023AmiId
       SubnetId: !Ref PublicSubnet2
       KeyName: !Ref LinuxBastionHostTwoKeyPair
@@ -711,6 +804,10 @@ Resources:
       HealthCheckType: ELB
       TargetGroupARNs:
         - !GetAtt WebServerTargetGroup.TargetGroupArn
+      Tags:
+        - Key: Name
+          Value: WebServer
+          PropagateAtLaunch: true
 
 
 ############################################
@@ -751,14 +848,10 @@ Resources:
     Type: AWS::EC2::LaunchTemplate
     Properties:
       LaunchTemplateData:
-        InstanceType: t2.micro
+        InstanceType: !Ref InstanceType
         KeyName: !Ref WebServerKeyPair
         ImageId: !Ref LatestAL2023AmiId
         TagSpecifications:
-          - ResourceType: "launch-template"
-            Tags:
-              - Key: "Name"
-                Value: "Web Server Launch Template"
           - ResourceType: instance
             Tags:
               - Key: "Name"
@@ -767,7 +860,7 @@ Resources:
         IamInstanceProfile:
           Arn:
             Fn::GetAtt:
-            - InstanceProfile
+            - EC2InstanceProfile
             - Arn
         SecurityGroupIds:
           - !Ref ApplicationSecurityGroup
@@ -797,6 +890,33 @@ Resources:
 
       LaunchTemplateName: Web-Server-Launch-Template
 
-# Create AMI
-#https://repost.aws/knowledge-center/ec2-systems-manager-ami-automation
 
+
+Outputs:
+  ApplicationLoadBalancerDNS:
+    Description: The DNS name of the Application Load Balancer
+    Value: !GetAtt ApplicationLoadBalancer.DNSName
+
+  LinuxBastionHostOneKeyPairID:
+    Value: !GetAtt LinuxBastionHostOneKeyPair.KeyPairId
+    Description: Key Pair ID for Linux Bastion Host One
+
+  LinuxBastionHostTwoKeyPairID:
+    Value: !GetAtt LinuxBastionHostTwoKeyPair.KeyPairId
+    Description: Key Pair ID for Linux Bastion Host Two
+
+  WebServerKeyPairID:
+    Value: !GetAtt WebServerKeyPair.KeyPairId
+    Description: Key Pair ID for Web Server
+
+  LinuxBastionHostOnePublicIPAddress:
+    Value: !GetAtt LinuxBastionHost1.PublicIp
+    Description: Public IP Address for Linux Bastion Host One
+
+  LinuxBastionHostTwoPublicIPAddress:
+    Value: !GetAtt LinuxBastionHost2.PublicIp
+    Description: Public IP Address for Linux Bastion Host Two
+
+  VpcId: 
+    Value: !GetAtt PublicCloudVPC.VpcId
+    Description: VPC ID
