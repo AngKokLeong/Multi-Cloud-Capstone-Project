@@ -523,7 +523,7 @@ Resources:
         - !Ref LinuxBastionSecurityGroup
       Tags:
         - Key: Name
-          Value: LinuxBastionHost1
+          Value: LinuxBastionHost2
       BlockDeviceMappings:
         - DeviceName: /dev/xvda
           Ebs:
