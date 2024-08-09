@@ -30,6 +30,36 @@ Parameters:
       - t3.2xlarge
     Description: The EC2 instance type to launch
 
+
+  PublicSubnet1CidrBlock:
+    Type: String
+    Default: 10.1.3.0/24
+    Description: The CIDR block for the Public Subnet 1
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+
+
+  PublicSubnet2CidrBlock:
+    Type: String
+    Default: 10.1.4.0/24
+    Description: The CIDR block for the Public Subnet 2
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+
+  PrivateSubnet1CidrBlock:
+    Type: String
+    Default: 10.1.1.0/24
+    Description: The CIDR block for the Private Subnet 1
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+
+  PrivateSubnet2CidrBlock:
+    Type: String
+    Default: 10.1.2.0/24 
+    Description: The CIDR block for the Private Subnet 2
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+
   PublicSubnet1AvailabilityZone:
     Type: AWS::EC2::AvailabilityZone::Name
     Description: The Availability Zone in which to create resources
@@ -124,7 +154,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref PublicCloudVPC
-      CidrBlock: 10.1.3.0/24
+      CidrBlock: !Ref PublicSubnet1CidrBlock
       MapPublicIpOnLaunch: true
       AvailabilityZone: !Ref PublicSubnet1AvailabilityZone
       Tags:
@@ -144,7 +174,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref PublicCloudVPC
-      CidrBlock: 10.1.4.0/24
+      CidrBlock: !Ref PublicSubnet2CidrBlock
       MapPublicIpOnLaunch: true
       AvailabilityZone: !Ref PublicSubnet2AvailabilityZone
       Tags:
@@ -308,7 +338,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref PublicCloudVPC
-      CidrBlock: 10.1.1.0/24
+      CidrBlock: !Ref PrivateSubnet1CidrBlock
       AvailabilityZone: !Ref PrivateSubnet1AvailabilityZone
       Tags:
         - Key: Name
@@ -327,7 +357,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref PublicCloudVPC
-      CidrBlock: 10.1.2.0/24
+      CidrBlock: !Ref PrivateSubnet2CidrBlock
       AvailabilityZone: !Ref PrivateSubnet2AvailabilityZone
       Tags:
         - Key: Name
@@ -804,6 +834,10 @@ Resources:
       DesiredCapacity: 2
       HealthCheckGracePeriod: 300
       HealthCheckType: ELB
+      MetricsCollection:
+        - Granularity: "1Minute"
+          Metrics:
+            - "CPUUtilization"
       TargetGroupARNs:
         - !GetAtt WebServerTargetGroup.TargetGroupArn
       Tags:
@@ -829,7 +863,9 @@ Resources:
       TargetTrackingConfiguration:
         PredefinedMetricSpecification:
           PredefinedMetricType: ASGAverageCPUUtilization
-        TargetValue: 70.0
+        TargetValue: 25.0
+      EstimatedInstanceWarmup: 60
+
 
 ############################################
 # Web Server Launch Template
