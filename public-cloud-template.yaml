@@ -542,6 +542,21 @@ Resources:
 
 
 
+
+############################################
+# Web Server Key Pair
+# Resource Type: EC2 KeyPair
+# Layer Type: Security Layer 
+# Description: A KeyPair for Web Server EC2 Instance which the Launch Template will use 
+# DependsOn: None
+############################################
+
+  WebServerKeyPair:
+    Type: AWS::EC2::KeyPair
+    Properties:
+      KeyName: Web-Server-Key-Pair
+
+
 ##############################################################################################################################################
 # COMPUTE LAYER 
 ##############################################################################################################################################
