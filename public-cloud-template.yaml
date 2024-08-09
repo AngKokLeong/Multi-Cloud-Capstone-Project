@@ -399,8 +399,9 @@ Resources:
 
 ############################################
 # Application Load Balancer Security Group
-# Layer Type: Network Layer 
-# Description: Allow HTTP for Application Load Balancer
+# Resource Type: Security Group
+# Layer Type: Security Layer 
+# Description: A Security Group to allow HTTP Port 80 for any IP Address to enter Application Load Balancer
 # DependsOn: 
 #   - PublicCloudVPC
 ############################################
@@ -485,33 +486,7 @@ Resources:
           Value: Web-Server-SSH-Security-Group
 
 
-############################################
-# Application Load Balancer Security Group
-# Resource Type: Security Group
-# Layer Type: Security Layer 
-# Description: A Security Group to allow HTTP Port 80 for any IP Address to enter Application Load Balancer
-# DependsOn: 
-#   - PublicCloudVPC
-############################################
 
-  ApplicationLoadBalancerSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupName: ApplicationLoadBalancerSecurityGroup
-      GroupDescription: Port 80
-      VpcId: !Ref PublicCloudVPC
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
-          CidrIp: 0.0.0.0/0
-      Tags:
-        - Key: Name
-          Value: ALBSG
 
 
 ############################################
