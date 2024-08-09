@@ -461,7 +461,28 @@ Resources:
         - Key: Name
           Value: Linux-Bastion-Security-Group
 
+############################################
+# Web Server SSH Security Group
+# Resource Type: Security Group
+# Layer Type: Security Layer 
+# Description: A Security Group for Web Server to allow SSH access from Linux Bastion Security Group
+# DependsOn: None
+############################################
 
+  WebServerSSHSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: Web-Server-SSH-SG
+      GroupDescription: Enable access to SSH
+      VpcId: !Ref PublicCloudVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          SourceSecurityGroupId: !GetAtt LinuxBastionSecurityGroup.GroupId
+      Tags:
+        - Key: Name
+          Value: Web-Server-SSH-Security-Group
 
 ############################################
 # Linux Bastion Host One Key Pair
@@ -500,7 +521,7 @@ Resources:
 # Linux Bastion Host 1
 # Resource Type: EC2 Instance
 # Layer Type: Compute Layer 
-# Description: Allow HTTP for EC2 Instance hosting Application
+# Description: To provide secure access to Web Server 1 via SSH
 # DependsOn: 
 #   - PublicSubnet1
 #   - LinuxBastionSecurityGroup
@@ -535,7 +556,7 @@ Resources:
 # Linux Bastion Host 2
 # Resource Type: EC2 Instance
 # Layer Type: Compute Layer 
-# Description: Allow HTTP for EC2 Instance hosting Application
+# Description: To provide secure access to Web Server 2 via SSH
 # DependsOn: 
 #   - PublicSubnet2
 #   - LinuxBastionSecurityGroup
@@ -565,6 +586,62 @@ Resources:
       Monitoring: false
 
 
+############################################
+# EC2 Instance - Web Server 1
+# Resource Type: EC2 Instance
+# Layer Type: Compute Layer 
+# Description: Allow HTTP for EC2 Instance hosting Application
+# DependsOn: 
+#   - PublicSubnet2
+#   - LinuxBastionSecurityGroup
+############################################
+
+  WebServer1:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: !Ref LatestAL2023AmiId
+      SubnetId: !Ref PrivateSubnet1
+      #KeyName: !Ref WebServerOneKeyPair
+      SecurityGroupIds:
+        - !Ref ApplicationSecurityGroup
+        - !Ref WebServerSSHSecurityGroup
+      UserData:
+        Fn::Base64: !Sub |
+              #!/bin/bash -ex
+                dnf -y update
+              
+                dnf -y install httpd
+                dnf -y install git
+                dnf -y install stress
+
+                cd /var/www/html/
+                
+                # Clone the Git Repository containing the Sample PHP application
+                sudo git clone https://github.com/AngKokLeong/Multi-Cloud-Capstone-Project-Sample-Webpage.git
+                
+                # Move every item from Multi-Cloud-Capstone-Project-Sample-Webpage to /var/www/html/
+                sudo mv Multi-Cloud-Capstone-Project-Sample-Webpage/* ./
+                sudo rm -rf Multi-Cloud-Capstone-Project-Sample-Webpage 
+
+                chkconfig httpd on
+                service httpd start
+
+                chown -R ec2-user:ec2-user /var/www/html
+      Tags:
+        - Key: Name
+          Value: WebServer1
+      #IamInstanceProfile: !Ref InstanceProfile
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeSize: 10
+            VolumeType: gp3
+            DeleteOnTermination: true
+            Encrypted: true
+        - DeviceName: /dev/xvdb
+          NoDevice: {}
+      Monitoring: false
 
 
 # Create AMI
