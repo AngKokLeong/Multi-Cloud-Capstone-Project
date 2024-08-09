@@ -6,42 +6,43 @@ Parameters:
   VPCIdentifier:
     Type: String
     Description: VPC Identifier
-    Default: public-cloud
+    Default: Osaka-Public-VPC
 
-  
-
-
+  VPCNetworkAddress:
+    Type: String
+    Description: VPC Network Address
+    Default: 10.1.0.0/16
+    
 Resources:
-
-######################################
+#######################################################################
 # NETWORK LAYER 
-######################################
+#######################################################################
 
 
-##################
+#################################
 # Public Cloud VPC
 # Layer Type: Network Layer 
 # Description:
-# 
-##################
+# DependsOn: None
+#################################
 
   PublicCloudVPC:
     Type: AWS::EC2::VPC
     Properties:
-      CidrBlock: 10.0.0.0/16
+      CidrBlock: !Ref VPCNetworkAddress
       EnableDnsSupport: true
       EnableDnsHostnames: true
       Tags:
         - Key: Name
           Value: !Ref VPCIdentifier
 
-##################
+#################################
 # Internet Gateway
 # Layer Type: Network Layer 
 # Description:
 # DependsOn: 
-#     -  
-##################
+#     -  PublicCloudVPC
+#################################
 
   InternetGateWay:
     Type: AWS::EC2::InternetGateway
@@ -51,14 +52,14 @@ Resources:
         - Key: Name
           Value: Public Cloud VPC Internet Gateway
 
-##################
+#################################
 # VPC Gateway Attachment
 # Layer Type: Network Layer 
 # Description:
 # DependsOn: 
 #     - InternetGateWay
 #     - PublicCloudVPC
-##################
+#################################
 
   VPCtoIGWConnection:
     Type: AWS::EC2::VPCGatewayAttachment
@@ -66,13 +67,184 @@ Resources:
       InternetGatewayId: !Ref InternetGateWay
       VpcId: !Ref PublicCloudVPC
 
-##################
+
+#################################
+# Public Subnet 1
+# Layer Type: Network Layer 
+# Description: Public Subnet 1 in Public Cloud VPC
+# DependsOn: 
+#   - PublicCloudVPC
+#################################
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref PublicCloudVPC
+      CidrBlock: 10.1.3.0/24
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: PublicSubnet1
+
+#################################
+# Public Subnet 2
+# Layer Type: Network Layer 
+# Description: Public Subnet 2 in Public Cloud VPC
+# DependsOn: 
+#   - PublicCloudVPC
+#################################
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref PublicCloudVPC
+      CidrBlock: 10.1.4.0/24
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: PublicSubnet2
+
+#################################
+# NATGatewayForPublicSubnet1
+# Layer Type: Network Layer 
+# Description:
+# DependsOn: 
+#   - PublicCloudVPC
+#   - ElasticIPAddressforNATGatewayPublicSubnet1
+#   - PublicSubnet1
+#################################
+
+  NATGatewayForPublicSubnet1:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt ElasticIPAddressforNATGatewayPublicSubnet1.AllocationId
+      ConnectivityType: public
+      SubnetId: !Ref PublicSubnet1
+      Tags:
+      - Key: Name
+        Value: PublicSubnet1-NATGateway
+
+#################################
+# ElasticIPAddressforNATGatewayPublicSubnet1
+# Layer Type: Network Layer 
+# Description: Elastic IP Address attached to NAT Gateway for Public Subnet 1
+# DependsOn: None
+#################################
+
+  ElasticIPAddressforNATGatewayPublicSubnet1:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: PublicSubnet1-NATGateway-Elastic-IP 
+
+#################################
+# NATGatewayForPublicSubnet2
+# Layer Type: Network Layer 
+# Description:
+# DependsOn: 
+#   - PublicCloudVPC
+#   - ElasticIPAddressforNATGatewayPublicSubnet2
+#   - PublicSubnet2
+#################################
+
+  NATGatewayForPublicSubnet2:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt ElasticIPAddressforNATGatewayPublicSubnet2.AllocationId
+      ConnectivityType: public
+      SubnetId: !Ref PublicSubnet2
+      Tags:
+      - Key: Name
+        Value: PublicSubnet2-NATGateway
+
+#################################
+# ElasticIPAddressforNATGatewayPublicSubnet2
+# Layer Type: Network Layer 
+# Description: Elastic IP Address attached to NAT Gateway for Public Subnet 2
+# DependsOn: None
+#################################
+
+  ElasticIPAddressforNATGatewayPublicSubnet2:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: PublicSubnet2-NATGateway-Elastic-IP 
+
+
+#################################
+# PublicRouteTableAssociationPublicSubnet1
+# Layer Type: Network Layer
+# Description: Public Route Table associating Public Subnet 1
+# DependsOn:
+#   - PublicRouteTable
+#   - PublicSubnet1
+#################################
+
+  PublicRouteTableAssociationPublicSubnet1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
+
+
+#################################
+# PublicRouteTableAssociationPublicSubnet2
+# Layer Type: Network Layer
+# Description: Public Route Table associating Public Subnet 2
+# DependsOn:
+#   - PublicRouteTable
+#   - PublicSubnet2
+#################################
+
+  PublicRouteTableAssociationPublicSubnet2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
+
+
+#################################
+# Public Route Table
+# Layer Type: Network Layer
+# DependsOn:
+#   - PublicRouteTable
+#################################
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref PublicCloudVPC
+      Tags:
+        - Key: Name
+          Value: Public Route Table
+
+#################################
+# Public Route Table
+# Layer Type: Network Layer
+# DependsOn:
+#   - PublicRouteTable
+#   - InternetGateWay
+#################################
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateWay
+      RouteTableId: !Ref PublicRouteTable
+
+
+#################################
 # Private Subnet 1
 # Layer Type: Network Layer 
 # Description:
 # DependsOn: 
 #   - PublicCloudVPC
-##################
+#################################
 
   PrivateSubnet1:
     Type: AWS::EC2::Subnet
@@ -84,13 +256,13 @@ Resources:
         - Key: Name
           Value: PrivateSubnet1
 
-##################
+#################################
 # Private Subnet 2
 # Layer Type: Network Layer 
 # Description:
 # DependsOn: 
 #   - PublicCloudVPC
-##################
+#################################
 
   PrivateSubnet2:
     Type: AWS::EC2::Subnet
@@ -103,46 +275,97 @@ Resources:
           Value: PrivateSubnet2
 
 
-##################
-# Public Subnet 1
-# Layer Type: Network Layer 
-# Description:
+#################################
+# Private Route Table App
+# Layer Type: Network Layer
+# Description: Private Routing Table for Private Subnet
 # DependsOn: 
 #   - PublicCloudVPC
-##################
+#################################
 
-  PublicSubnet1:
-    Type: AWS::EC2::Subnet
+  PrivateRouteTableForPrivateSubnet:
+    Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref PublicCloudVPC
-      CidrBlock: 10.1.3.0/24
-      AvailabilityZone: !Select [ 0, !GetAZs '' ]
       Tags:
         - Key: Name
-          Value: PublicSubnet1
+          Value: Private Route Table App
 
-##################
-# Public Subnet 2
+#################################
+# ApplicationServerPrivateRoute1
 # Layer Type: Network Layer 
-# Description:
+# Description: Private Route in Private Subnet for Application Server and it finds the destination to the NAT Gateway in Public Subnet 1
 # DependsOn: 
-#   - PublicCloudVPC
-##################
+#   - PrivateRouteTableForPrivateSubnet
+#   - NATGatewayForPublicSubnet1
+#################################
 
-  PublicSubnet2:
-    Type: AWS::EC2::Subnet
+  ApplicationServerPrivateRoute1:            
+    Type: AWS::EC2::Route
     Properties:
-      VpcId: !Ref PublicCloudVPC
-      CidrBlock: 10.1.4.0/24
-      AvailabilityZone: !Select [ 1, !GetAZs '' ]
-      Tags:
-        - Key: Name
-          Value: PublicSubnet2
+      RouteTableId: !Ref PrivateRouteTableForPrivateSubnet
+      DestinationCidrBlock: 0.0.0.0/0
+      # Route traffic through the NAT Gateway:
+      NatGatewayId: !Ref NATGatewayForPublicSubnet1
 
 
-######################################
+
+#################################
+# ApplicationServerPrivateRoute2
+# Layer Type: Network Layer 
+# Description: Private Route in Private Subnet for Application Server and it finds the destination to the NAT Gateway in Public Subnet 2
+# DependsOn: 
+#   - PrivateRouteTableForPrivateSubnet
+#   - NATGatewayForPublicSubnet2
+#################################
+
+  ApplicationServerPrivateRoute2:            # Private route table can access web via NAT (created below)
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableForPrivateSubnet
+      DestinationCidrBlock: 0.0.0.0/24
+      # Route traffic through the NAT Gateway:
+      NatGatewayId: !Ref NATGatewayForPublicSubnet2
+
+
+
+######################
+# PrivateRouteTableAssociationForPrivateSubnet1
+# Layer Type: Network Layer
+# DependsOn:
+#   - PrivateRouteTableForPrivateSubnet
+#   - PrivateSubnet2
+######################
+
+  PrivateRouteTableAssociationForPrivateSubnet1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableForPrivateSubnet
+      SubnetId: !Ref PrivateSubnet1
+
+######################
+# PrivateRouteTableAssociationForPrivateSubnet2
+# Layer Type: Network Layer
+# DependsOn:
+#   - PrivateRouteTableForPrivateSubnet
+#   - PrivateSubnet2
+######################
+
+  PrivateRouteTableAssociationForPrivateSubnet2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableForPrivateSubnet
+      SubnetId: !Ref PrivateSubnet2
+
+
+
+
+
+
+
+#######################################################################
 # SECURITY LAYER 
-######################################
+#######################################################################
 
 
 ##################
@@ -186,7 +409,9 @@ Resources:
 
 
 
-
+######################################
+# COMPUTE LAYER 
+######################################
 
 
 
