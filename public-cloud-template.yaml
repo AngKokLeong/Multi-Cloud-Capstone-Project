@@ -462,6 +462,35 @@ Resources:
           Value: Linux-Bastion-Security-Group
 
 
+
+############################################
+# Linux Bastion Host One Key Pair
+# Resource Type: EC2 KeyPair
+# Layer Type: Security Layer 
+# Description: Create the Keypair for Linux Bastion Host One
+# DependsOn: None
+############################################
+
+  LinuxBastionHostOneKeyPair:
+    Type: AWS::EC2::KeyPair
+    Properties:
+      KeyName: Linux-Bastion-Host-One-Key-Pair
+
+############################################
+# Linux Bastion Host Two Key Pair
+# Resource Type: EC2 KeyPair
+# Layer Type: Security Layer 
+# Description: Create the Keypair for Linux Bastion Host Two
+# DependsOn: None
+############################################
+
+  LinuxBastionHostTwoKeyPair:
+    Type: AWS::EC2::KeyPair
+    Properties:
+      KeyName: Linux-Bastion-Host-Two-Key-Pair
+
+
+
 ##############################################################################################################################################
 # COMPUTE LAYER 
 ##############################################################################################################################################
@@ -483,7 +512,7 @@ Resources:
       InstanceType: t2.micro
       ImageId: !Ref LatestAL2023AmiId
       SubnetId: !Ref PublicSubnet1
-      #KeyName: !Ref LinuxBastionHostOneKeyPair
+      KeyName: !Ref LinuxBastionHostOneKeyPair
       SecurityGroupIds:
         - !Ref LinuxBastionSecurityGroup
       Tags:
@@ -518,7 +547,7 @@ Resources:
       InstanceType: t2.micro
       ImageId: !Ref LatestAL2023AmiId
       SubnetId: !Ref PublicSubnet2
-      #KeyName: !Ref LinuxBastionHostOneKeyPair
+      KeyName: !Ref LinuxBastionHostTwoKeyPair
       SecurityGroupIds:
         - !Ref LinuxBastionSecurityGroup
       Tags:
@@ -534,6 +563,9 @@ Resources:
         - DeviceName: /dev/xvdb
           NoDevice: {}
       Monitoring: false
+
+
+
 
 # Create AMI
 #https://repost.aws/knowledge-center/ec2-systems-manager-ami-automation
