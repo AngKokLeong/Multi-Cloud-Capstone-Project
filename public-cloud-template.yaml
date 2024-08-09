@@ -21,6 +21,7 @@ Resources:
 
 #################################
 # Public Cloud VPC
+# Resource Type: EC2 VPC
 # Layer Type: Network Layer 
 # Description:
 # DependsOn: None
@@ -38,8 +39,9 @@ Resources:
 
 #################################
 # Internet Gateway
+# Resource Type: EC2 Internet Gateway
 # Layer Type: Network Layer 
-# Description:
+# Description: Create a resource for InternetGateway
 # DependsOn: 
 #     -  PublicCloudVPC
 #################################
@@ -54,8 +56,9 @@ Resources:
 
 #################################
 # VPC Gateway Attachment
+# Resource Type: EC2 VPC Gateway Attachment
 # Layer Type: Network Layer 
-# Description:
+# Description: Attach Internet Gateway to Public Cloud VPC
 # DependsOn: 
 #     - InternetGateWay
 #     - PublicCloudVPC
@@ -70,6 +73,7 @@ Resources:
 
 #################################
 # Public Subnet 1
+# Resource Type: EC2 Subnet
 # Layer Type: Network Layer 
 # Description: Public Subnet 1 in Public Cloud VPC
 # DependsOn: 
@@ -88,6 +92,7 @@ Resources:
 
 #################################
 # Public Subnet 2
+# Resource Type: EC2 Subnet
 # Layer Type: Network Layer 
 # Description: Public Subnet 2 in Public Cloud VPC
 # DependsOn: 
@@ -106,6 +111,7 @@ Resources:
 
 #################################
 # NATGatewayForPublicSubnet1
+# Resource Type: EC2 NAT Gateway
 # Layer Type: Network Layer 
 # Description:
 # DependsOn: 
@@ -126,6 +132,7 @@ Resources:
 
 #################################
 # ElasticIPAddressforNATGatewayPublicSubnet1
+# Resource Type: EC2 EIP
 # Layer Type: Network Layer 
 # Description: Elastic IP Address attached to NAT Gateway for Public Subnet 1
 # DependsOn: None
@@ -141,6 +148,7 @@ Resources:
 
 #################################
 # NATGatewayForPublicSubnet2
+# Resource Type: EC2 NAT Gateway
 # Layer Type: Network Layer 
 # Description:
 # DependsOn: 
@@ -161,6 +169,7 @@ Resources:
 
 #################################
 # ElasticIPAddressforNATGatewayPublicSubnet2
+# Resource Type: EC2 EIP
 # Layer Type: Network Layer 
 # Description: Elastic IP Address attached to NAT Gateway for Public Subnet 2
 # DependsOn: None
@@ -177,6 +186,7 @@ Resources:
 
 #################################
 # PublicRouteTableAssociationPublicSubnet1
+# Resource Type: EC2 Subnet Route Table Association
 # Layer Type: Network Layer
 # Description: Public Route Table associating Public Subnet 1
 # DependsOn:
@@ -193,6 +203,7 @@ Resources:
 
 #################################
 # PublicRouteTableAssociationPublicSubnet2
+# Resource Type: EC2 Subnet Route Table Association
 # Layer Type: Network Layer
 # Description: Public Route Table associating Public Subnet 2
 # DependsOn:
@@ -209,9 +220,11 @@ Resources:
 
 #################################
 # Public Route Table
+# Resource Type: EC2 RouteTable
 # Layer Type: Network Layer
+# Description: 
 # DependsOn:
-#   - PublicRouteTable
+#   - PublicCloudVPC
 #################################
 
   PublicRouteTable:
@@ -224,6 +237,7 @@ Resources:
 
 #################################
 # PublicRoute
+# Resource Type: EC2 Route
 # Layer Type: Network Layer
 # Description: Create a Route in Public Routing Table to accept any connection from the Internet Gateway
 # DependsOn:
@@ -241,6 +255,7 @@ Resources:
 
 #################################
 # Private Subnet 1
+# Resource Type: EC2 Subnet
 # Layer Type: Network Layer 
 # Description:
 # DependsOn: 
@@ -259,6 +274,7 @@ Resources:
 
 #################################
 # Private Subnet 2
+# Resource Type: EC2 Subnet
 # Layer Type: Network Layer 
 # Description: 
 # DependsOn: 
@@ -278,6 +294,7 @@ Resources:
 
 #################################
 # Private Route Table App
+# Resource Type: EC2 Route Table
 # Layer Type: Network Layer
 # Description: Private Routing Table for Private Subnet
 # DependsOn: 
@@ -294,6 +311,7 @@ Resources:
 
 #################################
 # ApplicationServerPrivateRoute1
+# Resource Type: EC2 Route
 # Layer Type: Network Layer 
 # Description: Private Route in Private Subnet for Application Server and it finds the destination to the NAT Gateway in Public Subnet 1
 # DependsOn: 
@@ -313,6 +331,7 @@ Resources:
 
 #################################
 # ApplicationServerPrivateRoute2
+# Resource Type: EC2 Route
 # Layer Type: Network Layer 
 # Description: Private Route in Private Subnet for Application Server and it finds the destination to the NAT Gateway in Public Subnet 2
 # DependsOn: 
@@ -332,6 +351,7 @@ Resources:
 
 ######################
 # PrivateRouteTableAssociationForPrivateSubnet1
+# Resource Type: SubnetRouteTableAssociation
 # Layer Type: Network Layer
 # Description: Associate Private Subnet 1 to Private Route Table
 # DependsOn:
@@ -347,6 +367,7 @@ Resources:
 
 ######################
 # PrivateRouteTableAssociationForPrivateSubnet2
+# Resource Type: SubnetRouteTableAssociation
 # Layer Type: Network Layer
 # Description: Associate Private Subnet 2 to Private Route Table
 # DependsOn:
@@ -392,10 +413,12 @@ Resources:
 
 ##################
 # Application Security Group
+# Resource Type: Security Group
 # Layer Type: Network Layer 
 # Description: Allow HTTP for EC2 Instance hosting Application
 # DependsOn: 
 #   - PublicCloudVPC
+#   - ApplicationLoadBalancerSecurityGroup
 ##################
 
   ApplicationSecurityGroup:
@@ -415,6 +438,16 @@ Resources:
 ##############################################################################################################################################
 # COMPUTE LAYER 
 ##############################################################################################################################################
+
+
+##################
+# Linux Bastion Host 1
+# Resource Type: EC2 Instance
+# Layer Type: Compute Layer 
+# Description: Allow HTTP for EC2 Instance hosting Application
+# DependsOn: 
+#   - PublicCloudVPC
+##################
 
 
 
