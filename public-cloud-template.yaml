@@ -739,6 +739,7 @@ Resources:
 # Description: 
 # DependsOn: 
 #   - LatestAL2023AmiId
+#   - WebServerKeyPair
 #   - AutoScalingGroup
 #   - ApplicationSecurityGroup
 #   - WebServerSSHSecurityGroup
@@ -749,7 +750,7 @@ Resources:
     Properties:
       LaunchTemplateData:
         InstanceType: t2.micro
-#        KeyName: !Ref KeyName
+        KeyName: !Ref WebServerKeyPair
         ImageId: !Ref LatestAL2023AmiId
         TagSpecifications:
           - ResourceType: "launch-template"
